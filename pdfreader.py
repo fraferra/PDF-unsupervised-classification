@@ -1,8 +1,9 @@
 
 #CONSTANTS
-PATH='/Users/fraferra/Documents/Revision/Numerical Methods/Past papers/'
+PATH='/Users/fraferra/work/GraphAndBagOfWords/library/'
 
-PAPERS=[2008,2009,2010,2011,2012,2013,2014]
+PAPERS=range(1,29)#[2008,2009,2010,2011,2012,2013,2014]
+
 
 EXT='.pdf'
 
@@ -38,11 +39,19 @@ class readPDF:
 	    #
 	    # 6. Join the words back into one string separated by space, 
 	    # and return the result.
-	    return( " ".join( meaningful_words ))  
+	    meaningful_words= ( " ".join( meaningful_words ))  
+	    shortword = re.compile(r'\W*\b\w{1,4}\b')
+	    return shortword.sub('', meaningful_words)
 
+
+class Bag:
+
+	def __init__(self, data):
+		self.data=data
+		
 
   	def bagOfWord(self):
-  		words=[self.processPDFContent()]
+  		words=self.data
   		from sklearn.feature_extraction.text import CountVectorizer
 		# Initialize the "CountVectorizer" object, which is scikit-learn's
 		# bag of words tool.  
@@ -69,25 +78,99 @@ class Classifier:
 	def __init__(self,data):
 		self.data=data
 
-	#def randomForestClassifier(self):
+
+	def kNN(self):
+
+		for i in range(len(self.labels)):
+			for j in range(len(self.labels)):
+				tmp= scipy.spatial.distance.euclidean(self.data[i],self.data[j])
+
+	def kMeans(self, k):
+		#select random centroids
+		from sklearn.cluster import KMeans
+		km=KMeans(n_clusters=k)
+		km.fit(self.data)
+		return km.labels_
+
+
+	def affinity(self):
+		from sklearn.cluster import AffinityPropagation
+		af = AffinityPropagation(preference=-50).fit(self.data)
+		return af.labels_
+
+
+	def randomCentroids(self):
+		import random
+		indexes= random.sample(range(len(self.data)), self.k)
+		return self.data[indexes]
+
+
+class DocumentsSorting:
+
+	def __init__(self, data, label, path):
+		self.data=data
+		self.label=label
+		self.path=path
+
+	def sortDocuments(self):
+		import os
+		import os.path
+		from random import randint
+		uniqueData=list(set(self.data))
+		libraryPath=self.path+"newLibrary"
+		if os.path.exists(libraryPath):
+			libraryPath=libraryPath+str(randint(1,20))
+			os.system("mkdir "+libraryPath)
+		else:
+			os.system("mkdir "+libraryPath)
+		for i in uniqueData:
+			x=libraryPath+'/'+str(i)
+			os.system("mkdir "+x)
+		for i in range(len(self.data)):
+			oldPath=self.path+self.label[i]
+			newPath=libraryPath+'/'+str(self.data[i])+'/'+self.label[i]
+			os.system('cp '+oldPath+' '+newPath)
+
 
 
 if __name__=='__main__':
 	import PyPDF2
 	import nltk
+	import scipy.spatial
+	import math
+	import numpy as np
+	from os import listdir
+	from os.path import isfile, join
+	import os
+
+	onlyfiles = [ f for f in listdir(PATH) if isfile(join(PATH,f)) ][1:]
+
 	list_bags=[]
 	#nltk.download() 
 	#import readPDF
-	for i in range(7):
-		print i
-		stream=PATH+str(PAPERS[i])+EXT
+	for i in range(len(onlyfiles)):
+
+		stream=PATH+onlyfiles[i]
 		doc1=readPDF(stream)
-		list_bags.append(doc1.bagOfWord()[0])
-	#bag1=createBagsOfWords()
 
-	print list_bags
-	#print bag1.bagOfWord([doc1])
+		list_bags.append(doc1.processPDFContent())
 
 
+	# create bag
 
-	#print PyPDF2.PdfFileReader(STR).getNumPages()
+	bag=Bag(list_bags)
+	result=bag.bagOfWord()
+
+	classifier=Classifier(result)
+	r=classifier.kMeans(4)
+	af=classifier.affinity()
+	doc=DocumentsSorting(r, onlyfiles, PATH)
+	doc.sortDocuments()
+
+	# for i in range(len(onlyfiles)):
+	# 	print onlyfiles[i], r[i], af[i]
+
+
+
+
+	
