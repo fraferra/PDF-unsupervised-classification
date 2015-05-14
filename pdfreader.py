@@ -1,12 +1,4 @@
 
-#CONSTANTS
-PATH='/Users/fraferra/work/GraphAndBagOfWords/library/'
-
-PAPERS=range(1,29)#[2008,2009,2010,2011,2012,2013,2014]
-
-
-EXT='.pdf'
-
 class readPDF:
 	
 	def __init__(self, stream):
@@ -41,7 +33,9 @@ class readPDF:
 	    # and return the result.
 	    meaningful_words= ( " ".join( meaningful_words ))  
 	    shortword = re.compile(r'\W*\b\w{1,4}\b')
-	    return shortword.sub('', meaningful_words)
+	    longwords = re.compile(r'\W*\b\w{10,20}\b')
+	    meaningful_words= shortword.sub('', meaningful_words)
+	    return longwords.sub('', meaningful_words)
 
 
 class Bag:
@@ -143,32 +137,40 @@ if __name__=='__main__':
 	from os.path import isfile, join
 	import os
 
-	onlyfiles = [ f for f in listdir(PATH) if isfile(join(PATH,f)) ][1:]
+	print 
+	path=raw_input('Please enter path to PDF library:')
+
+	onlyfiles = [ f for f in listdir(path) if isfile(join(path,f)) ][1:]
+
 
 	list_bags=[]
-	#nltk.download() 
-	#import readPDF
+
+	print
+	print 'Reading PDFs...'
 	for i in range(len(onlyfiles)):
 
-		stream=PATH+onlyfiles[i]
+		stream=path+onlyfiles[i]
 		doc1=readPDF(stream)
 
 		list_bags.append(doc1.processPDFContent())
 
 
 	# create bag
-
+	print 
+	print 'Creating bag of words...'
 	bag=Bag(list_bags)
 	result=bag.bagOfWord()
 
 	classifier=Classifier(result)
+
+
 	r=classifier.kMeans(4)
-	af=classifier.affinity()
-	doc=DocumentsSorting(r, onlyfiles, PATH)
+	print 
+	print 'Sorting clustered documents...'
+	print
+	doc=DocumentsSorting(r, onlyfiles, path)
 	doc.sortDocuments()
 
-	# for i in range(len(onlyfiles)):
-	# 	print onlyfiles[i], r[i], af[i]
 
 
 
