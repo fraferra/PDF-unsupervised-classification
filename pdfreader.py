@@ -33,7 +33,7 @@ class readPDF:
 	    # and return the result.
 	    meaningful_words= ( " ".join( meaningful_words ))  
 	    shortword = re.compile(r'\W*\b\w{1,4}\b')
-	    longwords = re.compile(r'\W*\b\w{10,20}\b')
+	    longwords = re.compile(r'\W*\b\w{10,40}\b')
 	    meaningful_words= shortword.sub('', meaningful_words)
 	    return longwords.sub('', meaningful_words)
 
