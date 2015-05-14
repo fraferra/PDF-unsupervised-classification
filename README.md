@@ -5,21 +5,21 @@ Currently pdfreader reads all the PDF files in your library, converts them into 
 
 # How to run a test
 
-"""
+```
 git clone https://github.com/fraferra/PDF-unsupervised-classification/
-"""
+```
 
-'''
+```
 cd PDF-PDF-unsupervised-classification
-'''
+```
 
 Run
-'''
+```
 pwd
-'''
+```
 Copy path
-'''
+```
 python pdfreader.py
-'''
+```
 Paste path and add 'library/' at the end when asked.
 
