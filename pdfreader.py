@@ -139,6 +139,8 @@ if __name__=='__main__':
 
 	print 
 	path=raw_input('Please enter path to PDF library:')
+	print
+	n_clusters=raw_input('Please enter number of clusters (subfolders):')
 
 	onlyfiles = [ f for f in listdir(path) if isfile(join(path,f)) ][1:]
 
@@ -164,7 +166,7 @@ if __name__=='__main__':
 	classifier=Classifier(result)
 
 
-	r=classifier.kMeans(4)
+	r=classifier.kMeans(int(n_clusters))
 	print 
 	print 'Sorting clustered documents...'
 	print
