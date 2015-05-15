@@ -19,7 +19,13 @@ class readPDF:
 	    # Collapse whitespace
 	    return " ".join(content.replace(u"\xa0", " ").strip().split()).encode("ascii", "ignore")
 
-
+	def processWORDContent(self):
+		import docx
+		document = docx.Document(self.stream)
+		docText = '\n\n'.join([
+    	paragraph.text.encode('utf-8') for paragraph in document.paragraphs
+		])
+		return docText
 
 	def getExtension(self):
 		# get extension of document
@@ -37,6 +43,8 @@ class readPDF:
 			content=self.processPDFContent()
 		if ext=='.doc' or ext=='.docx':
 			content=self.processWORDContent()
+	
+
 		letters_only = re.sub("[^a-zA-Z]", " ", content) 
 	    #
 	    # 3. Convert to lower case, split into individual words
@@ -126,7 +134,9 @@ class DocumentsSorting:
 			os.system("mkdir "+x)
 		for i in range(len(self.data)):
 			oldPath=self.path+self.label[i]
+			oldPath=oldPath.replace (' ', '\\ ')
 			newPath=libraryPath+'/'+str(self.data[i])+'/'+self.label[i]
+			newPath=newPath.replace (' ', '\\ ')
 			os.system('cp '+oldPath+' '+newPath)
 
 
