@@ -6,6 +6,7 @@ class readPDF:
 
 
 	def processPDFContent(self):
+		# get string of words from pdf doc
 	    import re
 	    from nltk.corpus import stopwords
 	    content = ""
@@ -16,26 +17,47 @@ class readPDF:
 	        # Extract text from page and add to content
 	        content += pdf.getPage(i).extractText() + "\n"
 	    # Collapse whitespace
-	    content = " ".join(content.replace(u"\xa0", " ").strip().split()).encode("ascii", "ignore")
-	    letters_only = re.sub("[^a-zA-Z]", " ", content) 
+	    return " ".join(content.replace(u"\xa0", " ").strip().split()).encode("ascii", "ignore")
+
+
+
+	def getExtension(self):
+		# get extension of document
+		import os
+		fileName, fileExtension = os.path.splitext(self.stream)
+		return fileExtension
+
+	def refineDoc(self):
+		import re
+		from nltk.corpus import stopwords
+		# check extension and process file accordinly
+		ext=self.getExtension()
+		ext=str(ext)
+		if ext=='.pdf':
+			content=self.processPDFContent()
+		if ext=='.doc' or ext=='.docx':
+			content=self.processWORDContent()
+		letters_only = re.sub("[^a-zA-Z]", " ", content) 
 	    #
 	    # 3. Convert to lower case, split into individual words
-	    words = letters_only.lower().split()                             
+		words = letters_only.lower().split()                             
 	    #
 	    # 4. In Python, searching a set is much faster than searching
 	    #   a list, so convert the stop words to a set
-	    stops = set(stopwords.words("english"))                  
+		stops = set(stopwords.words("english"))                  
 	    # 
 	    # 5. Remove stop words
-	    meaningful_words = [w for w in words if not w in stops]   
+		meaningful_words = [w for w in words if not w in stops]   
 	    #
 	    # 6. Join the words back into one string separated by space, 
 	    # and return the result.
-	    meaningful_words= ( " ".join( meaningful_words ))  
-	    shortword = re.compile(r'\W*\b\w{1,4}\b')
-	    longwords = re.compile(r'\W*\b\w{10,40}\b')
-	    meaningful_words= shortword.sub('', meaningful_words)
-	    return longwords.sub('', meaningful_words)
+		meaningful_words= ( " ".join( meaningful_words ))  
+		shortword = re.compile(r'\W*\b\w{1,4}\b')
+		# eliminate very long words and short not meanigful words
+		longwords = re.compile(r'\W*\b\w{10,40}\b')
+		meaningful_words= shortword.sub('', meaningful_words)
+		return longwords.sub('', meaningful_words)
+
 
 
 class Bag:
@@ -73,31 +95,12 @@ class Classifier:
 		self.data=data
 
 
-	def kNN(self):
-
-		for i in range(len(self.labels)):
-			for j in range(len(self.labels)):
-				tmp= scipy.spatial.distance.euclidean(self.data[i],self.data[j])
-
 	def kMeans(self, k):
 		#select random centroids
 		from sklearn.cluster import KMeans
 		km=KMeans(n_clusters=k)
 		km.fit(self.data)
 		return km.labels_
-
-
-	def affinity(self):
-		from sklearn.cluster import AffinityPropagation
-		af = AffinityPropagation(preference=-50).fit(self.data)
-		return af.labels_
-
-
-	def randomCentroids(self):
-		import random
-		indexes= random.sample(range(len(self.data)), self.k)
-		return self.data[indexes]
-
 
 class DocumentsSorting:
 
@@ -107,6 +110,7 @@ class DocumentsSorting:
 		self.path=path
 
 	def sortDocuments(self):
+		# creaste sub library divided into folders
 		import os
 		import os.path
 		from random import randint
@@ -148,13 +152,15 @@ if __name__=='__main__':
 	list_bags=[]
 
 	print
-	print 'Reading PDFs...'
+	print 'Reading files...'
+
+	# get list containing all files to turn them into bag of words
 	for i in range(len(onlyfiles)):
 
 		stream=path+onlyfiles[i]
 		doc1=readPDF(stream)
 
-		list_bags.append(doc1.processPDFContent())
+		list_bags.append(doc1.refineDoc())
 
 
 	# create bag
@@ -165,11 +171,12 @@ if __name__=='__main__':
 
 	classifier=Classifier(result)
 
-
+	# cluster docs
 	r=classifier.kMeans(int(n_clusters))
 	print 
 	print 'Sorting clustered documents...'
 	print
+	# organize docs in subfolders
 	doc=DocumentsSorting(r, onlyfiles, path)
 	doc.sortDocuments()
 
