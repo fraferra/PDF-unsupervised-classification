@@ -146,7 +146,6 @@ if __name__=='__main__':
 	import nltk
 	import scipy.spatial
 	import math
-	import numpy as np
 	from os import listdir
 	from os.path import isfile, join
 	import os
